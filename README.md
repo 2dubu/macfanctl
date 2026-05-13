@@ -34,9 +34,10 @@ make setup       # same as `sudo macfanctl setup`
 ### Uninstall
 
 ```bash
-sudo macfanctl setup --uninstall   # remove sudoers rule
-sudo rm /usr/local/bin/macfanctl   # remove binary
+sudo macfanctl setup --uninstall && brew uninstall macfanctl
 ```
+
+If installed from source instead of brew, replace `brew uninstall macfanctl` with `sudo rm /usr/local/bin/macfanctl`.
 
 ## Usage
 
