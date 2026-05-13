@@ -3,7 +3,7 @@ BIN         = macfanctl
 BUILD_DIR   = .build/apple/Products/Release
 BUILD       = $(BUILD_DIR)/$(BIN)
 
-.PHONY: build test sign install uninstall sudoers clean run-list
+.PHONY: build test sign install uninstall setup clean run-list
 
 build:
 	swift build -c release --arch arm64 --arch x86_64
@@ -17,16 +17,14 @@ sign: build
 install: sign
 	sudo install -m 755 -o root -g wheel $(BUILD) $(PREFIX)/bin/$(BIN)
 	@echo "Installed to $(PREFIX)/bin/$(BIN)"
-	@echo "Run 'make sudoers' to enable passwordless invocation"
+	@echo "Run 'sudo $(BIN) setup' (or 'make setup') to register NOPASSWD sudoers rule"
 
-sudoers:
-	@echo "$$USER ALL=(root) NOPASSWD: $(PREFIX)/bin/$(BIN)" | \
-	  sudo tee /etc/sudoers.d/macfanctl > /dev/null
-	@sudo chmod 440 /etc/sudoers.d/macfanctl
-	@sudo visudo -c -f /etc/sudoers.d/macfanctl && echo "sudoers rule installed"
+setup:
+	sudo $(PREFIX)/bin/$(BIN) setup
 
 uninstall:
-	sudo rm -f $(PREFIX)/bin/$(BIN) /etc/sudoers.d/macfanctl
+	-sudo $(PREFIX)/bin/$(BIN) setup --uninstall 2>/dev/null
+	sudo rm -f $(PREFIX)/bin/$(BIN)
 
 run-list:
 	swift run macfanctl list

@@ -11,6 +11,7 @@ struct MacFanCtl: ParsableCommand {
             SetCommand.self,
             MaxCommand.self,
             AutoCommand.self,
+            SetupCommand.self,
         ]
     )
 }

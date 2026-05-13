@@ -13,20 +13,29 @@ v0.1 — read + write both implemented and verified on MacBook Pro M5 Max / macO
 
 ## Install
 
-From source:
+Two steps: install the binary, then run `setup` to register a NOPASSWD sudoers rule so write commands run without a password prompt from your shell or any launcher.
+
+### Recommended: Homebrew
+
+```bash
+brew install 2dubu/tap/macfanctl
+sudo macfanctl setup
+```
+
+### From source
 
 ```bash
 git clone git@github.com:2dubu/macfanctl.git
 cd macfanctl
 make install     # builds release universal binary, ad-hoc signs, installs to /usr/local/bin
-make sudoers     # optional: NOPASSWD rule for the binary so launchers can invoke it without a password prompt
+make setup       # same as `sudo macfanctl setup`
 ```
 
-Homebrew tap (not published yet):
+### Uninstall
 
 ```bash
-brew tap 2dubu/tap
-brew install macfanctl
+sudo macfanctl setup --uninstall   # remove sudoers rule
+sudo rm /usr/local/bin/macfanctl   # remove binary
 ```
 
 ## Usage
@@ -46,7 +55,7 @@ sudo macfanctl auto --fan 0          # release fan 0 only
 
 `set` rejects RPM values above the fan's hardware max with a clear error rather than silently clamping. Use `max` if you want to push to the ceiling.
 
-Without `make sudoers`, every write command will prompt for password. With it, the binary is allowed to run as root without prompting (scoped to `/usr/local/bin/macfanctl` only).
+Without `macfanctl setup`, every write command will prompt for password. With it, the binary is allowed to run as root without prompting (scoped to `/usr/local/bin/macfanctl` only).
 
 ## How it works
 
