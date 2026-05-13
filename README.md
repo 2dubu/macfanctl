@@ -1,6 +1,6 @@
 # macfanctl
 
-A macOS CLI for reading and controlling fan speeds via SMC. Designed to be invoked from launchers like Raycast.
+A macOS CLI for reading and controlling fan speeds via SMC.
 
 ## Status
 
@@ -32,15 +32,19 @@ brew install macfanctl
 ## Usage
 
 ```bash
-macfanctl list                          # show all fans (actual / min / max / target RPM)
-macfanctl list --json                   # machine-readable
-macfanctl list --debug                  # dump raw SMC fan key bytes (for diagnostics on new hardware)
+macfanctl list                       # show all fans (actual / min / max / target RPM)
+macfanctl list --json                # machine-readable
+macfanctl list --debug               # dump raw SMC fan key bytes (for diagnostics on new hardware)
 
-sudo macfanctl set --fan 0 --rpm 3500   # set fan 0 target to 3500 RPM
-sudo macfanctl set --all --rpm 3500     # set all fans
-sudo macfanctl auto --fan 0             # release manual control for fan 0
-sudo macfanctl auto                     # release all
+sudo macfanctl set 3500              # set all fans to 3500 RPM
+sudo macfanctl set 3500 --fan 0      # set fan 0 only
+sudo macfanctl max                   # set all fans to their hardware maximum (per F%dMx)
+sudo macfanctl max --fan 0           # set fan 0 only to max
+sudo macfanctl auto                  # release all fans to system control
+sudo macfanctl auto --fan 0          # release fan 0 only
 ```
+
+`set` rejects RPM values above the fan's hardware max with a clear error rather than silently clamping. Use `max` if you want to push to the ceiling.
 
 Without `make sudoers`, every write command will prompt for password. With it, the binary is allowed to run as root without prompting (scoped to `/usr/local/bin/macfanctl` only).
 

@@ -17,7 +17,7 @@ sign: build
 install: sign
 	sudo install -m 755 -o root -g wheel $(BUILD) $(PREFIX)/bin/$(BIN)
 	@echo "Installed to $(PREFIX)/bin/$(BIN)"
-	@echo "Run 'make sudoers' to enable passwordless invocation from Raycast"
+	@echo "Run 'make sudoers' to enable passwordless invocation"
 
 sudoers:
 	@echo "$$USER ALL=(root) NOPASSWD: $(PREFIX)/bin/$(BIN)" | \

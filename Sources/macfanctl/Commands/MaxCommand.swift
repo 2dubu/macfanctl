@@ -2,23 +2,14 @@ import ArgumentParser
 import Foundation
 import SMCKit
 
-struct SetCommand: ParsableCommand {
+struct MaxCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "set",
-        abstract: "Set fan target RPM. Defaults to all fans. Requires root (sudo)."
+        commandName: "max",
+        abstract: "Set fan(s) to hardware maximum RPM. Requires root (sudo)."
     )
-
-    @Argument(help: "Target RPM.")
-    var rpm: Int
 
     @Option(name: .long, help: "Fan index (0-based). Omit to apply to all fans.")
     var fan: Int?
-
-    func validate() throws {
-        if rpm < 0 {
-            throw ValidationError("RPM must be non-negative.")
-        }
-    }
 
     func run() throws {
         let smc: SMC
@@ -37,22 +28,22 @@ struct SetCommand: ParsableCommand {
             targets = Array(0..<count)
         }
 
-        // Validate against hardware max for each target fan. Reject (do not clamp)
-        // so the user knows their requested value didn't reach hardware.
         for index in targets {
-            let max = (try? smc.read(.fanMax(index)).numeric).flatMap { $0 }.map(Int.init) ?? 0
-            if max > 0 && rpm > max {
-                FileHandle.standardError.write(Data(
-                    "RPM \(rpm) exceeds fan \(index) max (\(max)). Use `macfanctl max` to set to hardware max.\n".utf8
-                ))
-                throw ExitCode(64)
-            }
-        }
-
-        for index in targets {
+            let max: Int
             do {
-                try smc.setFanTarget(index: index, rpm: rpm)
-                print("Fan \(index): \(rpm) RPM")
+                max = (try smc.read(.fanMax(index)).numeric).map(Int.init) ?? 0
+            } catch {
+                FileHandle.standardError.write(Data("Fan \(index): could not read max RPM: \(error)\n".utf8))
+                throw ExitCode(2)
+            }
+            guard max > 0 else {
+                FileHandle.standardError.write(Data("Fan \(index): hardware max is 0; refusing to set.\n".utf8))
+                throw ExitCode(2)
+            }
+
+            do {
+                try smc.setFanTarget(index: index, rpm: max)
+                print("Fan \(index): \(max) RPM (max)")
             } catch SMCError.permissionDenied {
                 FileHandle.standardError.write(Data("\(SMCError.permissionDenied)\n".utf8))
                 throw ExitCode(3)

@@ -31,7 +31,7 @@ struct AutoCommand: ParsableCommand {
         for index in targets {
             do {
                 try smc.restoreFanAuto(index: index)
-                print("Fan \(index) -> auto (target cleared)")
+                print("Fan \(index): auto")
             } catch SMCError.permissionDenied {
                 FileHandle.standardError.write(Data("\(SMCError.permissionDenied)\n".utf8))
                 throw ExitCode(3)
