@@ -85,6 +85,10 @@ Write operations require root. The current MVP relies on a NOPASSWD sudoers rule
 - **No Ftst diagnostic path.** Per the research, some Apple Silicon generations require an `Ftst=1` unlock dance before mode writes succeed. `macfanctl` currently only does the direct mode-write path (verified on M5).
 - **`F%dMn` is read-only on M5.** SMC returns `0x86` (key-not-writable) when attempting to write the minimum RPM. Informational — `macfanctl` doesn't touch `Mn`; switching to manual mode is what makes the target stick.
 
+## Reporting issues
+
+If `macfanctl` doesn't work as expected on your Mac, please open a [Hardware report](https://github.com/2dubu/macfanctl/issues/new/choose). The output of `macfanctl list --debug` is the most useful single piece of data to include — it shows which SMC keys your hardware exposes.
+
 ## License
 
 MIT
