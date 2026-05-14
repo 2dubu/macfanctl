@@ -1,0 +1,75 @@
+name: Hardware report
+description: Report whether macfanctl works on your Mac. Helps widen verified hardware coverage.
+title: "[hw] "
+labels: ["hardware-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing macfanctl on your Mac. This form helps triage quickly and figure out which code paths need attention.
+
+        The single most useful piece of data is the output of `macfanctl list --debug` — that shows which SMC keys your hardware exposes.
+
+  - type: input
+    id: mac-model
+    attributes:
+      label: Mac model
+      description: e.g. `MacBook Pro 14" M3 Pro 2023`, `Mac Studio M2 Max`, `MacBook Air M1`
+      placeholder: MacBook Pro 14" M3 Pro 2023
+    validations:
+      required: true
+
+  - type: input
+    id: chip
+    attributes:
+      label: Chip
+      description: M1 / M1 Pro / M1 Max / M2 / ... / M5 Max / Intel Core i7-XXXX
+      placeholder: M3 Pro
+    validations:
+      required: true
+
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      description: Output of `sw_vers -productVersion`
+      placeholder: "26.4"
+    validations:
+      required: true
+
+  - type: input
+    id: macfanctl-version
+    attributes:
+      label: macfanctl version
+      description: Output of `macfanctl --version`
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: debug-output
+    attributes:
+      label: macfanctl list --debug output
+      description: Paste the full output of `macfanctl list --debug`. No need to redact anything — this is just SMC key probes.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-i-tried
+    attributes:
+      label: Commands you tried
+      description: e.g. `sudo macfanctl set 3000`, `sudo macfanctl auto`. Paste the input and the output.
+      render: shell
+
+  - type: textarea
+    id: result
+    attributes:
+      label: What happened
+      description: Did fans respond? Did the target stick when checked with `macfanctl list`? Did it error out? Be as specific as you like.
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Anything else
+      description: Workload context, screenshots, whether Macs Fan Control or similar tools were running, etc. Optional.
