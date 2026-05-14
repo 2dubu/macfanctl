@@ -1,5 +1,7 @@
 # macfanctl
 
+[![CI](https://github.com/2dubu/macfanctl/actions/workflows/ci.yml/badge.svg)](https://github.com/2dubu/macfanctl/actions/workflows/ci.yml)
+
 A macOS CLI for reading and controlling fan speeds via SMC.
 
 ## Status
@@ -15,7 +17,7 @@ v0.1 — read + write both implemented and verified on MacBook Pro M5 Max / macO
 
 Two steps: install the binary, then run `setup` to register a NOPASSWD sudoers rule so write commands run without a password prompt from your shell or any launcher.
 
-### Recommended: Homebrew
+### Homebrew (Recommended)
 
 ```bash
 brew install 2dubu/tap/macfanctl
