@@ -60,6 +60,23 @@ sudo macfanctl auto --fan 0          # release fan 0 only
 
 Without `macfanctl setup`, every write command will prompt for password. With it, the binary is allowed to run as root without prompting (scoped to `/usr/local/bin/macfanctl` only).
 
+## Raycast scripts
+
+Optional [Raycast](https://www.raycast.com/) Script Commands for one-keystroke fan control, available in `raycast/`:
+
+- `fan-auto.sh` — release all fans to system control (`macfanctl auto`)
+- `fan-max.sh` — push all fans to hardware maximum (`macfanctl max`)
+- `fan-rpm.sh` — set all fans to a specific RPM (prompts for an RPM argument)
+
+### Install
+
+1. In Raycast, open **Settings → Extensions → Script Commands**.
+2. Click **Add Directories** and select the `raycast/` folder from this repo (or copy the `.sh` files into your existing Script Commands directory).
+
+The scripts call `sudo macfanctl …` and rely on the NOPASSWD sudoers rule installed by `macfanctl setup` — without that step, Raycast has no way to provide a password and the write commands (`fan-max`, `fan-rpm`) will fail silently. `fan-auto` does not require root on every system but is invoked the same way for consistency.
+
+Each script uses `command -v macfanctl` to locate the binary, so it works whether `macfanctl` was installed via Homebrew or built from source, as long as it's on `PATH`.
+
 ## How it works
 
 `macfanctl` talks to the `AppleSMC` IOKit service. The non-obvious part on Apple Silicon:
