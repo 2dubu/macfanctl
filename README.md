@@ -47,6 +47,8 @@ If installed from source instead of brew, replace `brew uninstall macfanctl` wit
 macfanctl list                       # show all fans (actual / min / max / target RPM)
 macfanctl list --json                # machine-readable
 macfanctl list --debug               # dump raw SMC fan key bytes (for diagnostics on new hardware)
+macfanctl watch                      # live-refresh the fan table in place (like top); Ctrl+C to quit
+macfanctl watch --interval 0.5       # refresh every 0.5s (default 1s)
 
 sudo macfanctl set 3500              # set all fans to 3500 RPM
 sudo macfanctl set 3500 --fan 0      # set fan 0 only

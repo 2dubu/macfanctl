@@ -44,19 +44,7 @@ struct ListCommand: ParsableCommand {
             return
         }
 
-        if fans.isEmpty {
-            print("No fans detected (FNum returned 0).")
-            return
-        }
-
-        print("Fan   Actual   Min    Max    Target")
-        print("---   ------   ----   ----   ------")
-        for fan in fans {
-            print(String(
-                format: "%-5d %-8d %-6d %-6d %-6d",
-                fan.index, fan.actualRPM, fan.minRPM, fan.maxRPM, fan.targetRPM
-            ))
-        }
+        print(renderFanTable(fans))
     }
 
     private func runDebug(smc: SMC) throws {
