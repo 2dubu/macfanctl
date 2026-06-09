@@ -67,6 +67,7 @@ Optional [Raycast](https://www.raycast.com/) Script Commands for one-keystroke f
 - `fan-auto.sh` — release all fans to system control (`macfanctl auto`)
 - `fan-max.sh` — push all fans to hardware maximum (`macfanctl max`)
 - `fan-rpm.sh` — set all fans to a specific RPM (prompts for an RPM argument)
+- `fan-status.sh` — show current fan state (RPM, min, max, target) via `macfanctl list`
 
 ### Install
 
