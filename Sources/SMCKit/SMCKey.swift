@@ -32,6 +32,10 @@ public struct SMCKey: Hashable, Sendable, CustomStringConvertible {
 public extension SMCKey {
     static let fanCount = SMCKey("FNum")
 
+    /// Global fan unlock flag (`Ftst`). Writing `1` lets manual-mode writes through
+    /// on generations that block them in System Mode (M4). Absent on M1/M5.
+    static let fanTest = SMCKey("Ftst")
+
     static func fanActual(_ index: Int) -> SMCKey {
         precondition((0...9).contains(index), "Fan index out of range for 4-char SMC key: \(index)")
         return SMCKey("F\(index)Ac")

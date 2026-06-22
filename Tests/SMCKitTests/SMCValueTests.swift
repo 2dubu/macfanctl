@@ -16,6 +16,13 @@ struct SMCKeyTests {
         #expect(SMCKey.fanMax(2).stringValue == "F2Mx")
         #expect(SMCKey.fanTarget(3).stringValue == "F3Tg")
     }
+
+    @Test("Mode and unlock keys produce expected FourCC")
+    func modeAndUnlockKeys() {
+        #expect(SMCKey.fanModeUppercase(0).stringValue == "F0Md")
+        #expect(SMCKey.fanModeLowercase(0).stringValue == "F0md")
+        #expect(SMCKey.fanTest.stringValue == "Ftst")
+    }
 }
 
 @Suite("SMCKeyData decoders")

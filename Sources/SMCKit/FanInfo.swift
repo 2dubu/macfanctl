@@ -59,8 +59,13 @@ public extension SMC {
         let modeKey = try resolveModeKey(forFan: index)
         let targetKey = SMCKey.fanTarget(index)
 
-        // 1. Switch the fan to manual mode (unlocks F%dTg writes from firmware override).
-        try write(modeKey, bytes: [0x01])
+        // 1. Switch to manual mode. Direct write sticks on M1/M5; M4 blocks it in
+        //    System Mode (0x82), so fall back to the `Ftst` unlock and retry.
+        do {
+            try write(modeKey, bytes: [0x01])
+        } catch SMCError.smcResult(0x82) {
+            try unlockManualMode(modeKey: modeKey)
+        }
 
         // 2. Write the target RPM in the appropriate encoding for this hardware.
         let probe = try read(targetKey)
@@ -74,6 +79,33 @@ public extension SMC {
     func restoreFanAuto(index: Int) throws {
         let modeKey = try resolveModeKey(forFan: index)
         try write(modeKey, bytes: [0x00])
+    }
+
+    /// Releases the global `Ftst` unlock if set. Call once after all fans are back
+    /// on auto. No-op on hardware without `Ftst` (M1/M5).
+    func resetFanTestUnlock() throws {
+        guard let flag = (try? read(.fanTest))?.ui8, flag != 0 else { return }
+        try write(.fanTest, bytes: [0x00])
+    }
+
+    /// `Ftst` unlock for firmware that blocks mode writes in System Mode (M4): write
+    /// `Ftst=1`, then retry the mode write until it sticks (polls 100ms, 10s timeout).
+    private func unlockManualMode(modeKey: SMCKey) throws {
+        guard (try? read(.fanTest)) != nil else {
+            throw SMCError.modeWriteRejected(modeKey)
+        }
+        try write(.fanTest, bytes: [0x01])
+
+        let deadline = Date().addingTimeInterval(10)
+        while true {
+            do {
+                try write(modeKey, bytes: [0x01])
+                return
+            } catch SMCError.smcResult(0x82) {
+                if Date() >= deadline { throw SMCError.modeUnlockTimedOut(modeKey) }
+                Thread.sleep(forTimeInterval: 0.1)
+            }
+        }
     }
 
     private func encode(rpm: Int, forType type: String, key: SMCKey) throws -> [UInt8] {
