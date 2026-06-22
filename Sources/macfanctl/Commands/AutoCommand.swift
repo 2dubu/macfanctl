@@ -40,5 +40,8 @@ struct AutoCommand: ParsableCommand {
                 throw ExitCode(2)
             }
         }
+
+        // All fans restored; drop the global Ftst unlock if we set it (M4).
+        try? smc.resetFanTestUnlock()
     }
 }

@@ -9,6 +9,8 @@ public enum SMCError: Error, CustomStringConvertible, Sendable {
     case permissionDenied
     case unsupportedDataType(SMCKey, type: String)
     case modeKeyNotFound(fanIndex: Int)
+    case modeWriteRejected(SMCKey)
+    case modeUnlockTimedOut(SMCKey)
 
     public var description: String {
         switch self {
@@ -28,6 +30,10 @@ public enum SMCError: Error, CustomStringConvertible, Sendable {
             return "Key \(key) has unsupported data type '\(type)' for this operation"
         case .modeKeyNotFound(let fanIndex):
             return "No fan mode key found for fan \(fanIndex) (tried F\(fanIndex)Md and F\(fanIndex)md). Manual control may not be supported on this Mac."
+        case .modeWriteRejected(let key):
+            return "Firmware rejected the manual-mode write to \(key) (SMC 0x82, System Mode) and no `Ftst` unlock key is available on this Mac. Manual fan control may be unsupported here."
+        case .modeUnlockTimedOut(let key):
+            return "Firmware did not release System Mode for \(key) within the timeout after the `Ftst` unlock. Try again, or report this with `macfanctl list --debug` output."
         }
     }
 }

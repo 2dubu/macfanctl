@@ -59,9 +59,10 @@ struct ListCommand: ParsableCommand {
         for i in 0..<max(count, 2) {
             candidates += [
                 "F\(i)Ac", "F\(i)Mn", "F\(i)Mx", "F\(i)Tg",
-                "F\(i)Sf", "F\(i)ID", "F\(i)Md",
+                "F\(i)Sf", "F\(i)ID", "F\(i)Md", "F\(i)md",
             ]
         }
+        candidates += ["Ftst"]
 
         for name in candidates {
             let key = SMCKey(name)
