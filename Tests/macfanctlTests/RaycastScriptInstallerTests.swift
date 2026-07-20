@@ -2,6 +2,29 @@
 import XCTest
 
 final class RaycastScriptInstallerTests: XCTestCase {
+    func testCatalogMatchesTopLevelRaycastScripts() throws {
+        let expectedFilenames: Set<String> = [
+            "fan-auto.sh",
+            "fan-max.sh",
+            "fan-rpm.sh",
+            "fan-status.sh",
+        ]
+        let repositoryRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+
+        XCTAssertEqual(RaycastScripts.all.count, 4)
+        XCTAssertEqual(Set(RaycastScripts.all.map(\.filename)), expectedFilenames)
+
+        for script in RaycastScripts.all {
+            let source = repositoryRoot
+                .appendingPathComponent("raycast", isDirectory: true)
+                .appendingPathComponent(script.filename)
+            XCTAssertEqual(Data(script.contents.utf8), try Data(contentsOf: source), script.filename)
+        }
+    }
+
     func testDestinationDirectoryUsesExpectedApplicationSupportPath() {
         let home = URL(fileURLWithPath: "/Users/tester", isDirectory: true)
         XCTAssertEqual(
