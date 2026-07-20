@@ -13,6 +13,7 @@ struct MacFanCtl: ParsableCommand {
             MaxCommand.self,
             AutoCommand.self,
             SetupCommand.self,
+            RaycastCommand.self,
         ]
     )
 }
