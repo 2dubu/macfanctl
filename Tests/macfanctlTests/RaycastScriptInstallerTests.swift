@@ -1,0 +1,69 @@
+@testable import macfanctl
+import XCTest
+
+final class RaycastScriptInstallerTests: XCTestCase {
+    func testDestinationDirectoryUsesExpectedApplicationSupportPath() {
+        let home = URL(fileURLWithPath: "/Users/tester", isDirectory: true)
+        XCTAssertEqual(
+            RaycastScriptInstaller.destinationDirectory(homeDirectory: home).path,
+            "/Users/tester/Library/Application Support/Raycast/script-commands/macfanctl"
+        )
+    }
+
+    func testInstallWritesEveryManagedScriptAsExecutable() throws {
+        let root = try temporaryDirectory()
+        let destination = root.appendingPathComponent("raycast", isDirectory: true)
+        let installed = try RaycastScriptInstaller().install(RaycastScripts.all, at: destination)
+
+        XCTAssertEqual(Set(installed.map(\.lastPathComponent)), Set(RaycastScripts.all.map(\.filename)))
+        for script in RaycastScripts.all {
+            let file = destination.appendingPathComponent(script.filename)
+            XCTAssertEqual(try String(contentsOf: file, encoding: .utf8), script.contents)
+            let attributes = try FileManager.default.attributesOfItem(atPath: file.path)
+            XCTAssertEqual((attributes[.posixPermissions] as? NSNumber)?.intValue, 0o755)
+        }
+    }
+
+    func testInstallReplacesManagedFilesAndPreservesUnrelatedFiles() throws {
+        let root = try temporaryDirectory()
+        let destination = root.appendingPathComponent("raycast", isDirectory: true)
+        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+        try "stale".write(to: destination.appendingPathComponent("fan-auto.sh"), atomically: true, encoding: .utf8)
+        try "keep".write(to: destination.appendingPathComponent("personal.sh"), atomically: true, encoding: .utf8)
+
+        _ = try RaycastScriptInstaller().install(RaycastScripts.all, at: destination)
+        _ = try RaycastScriptInstaller().install(RaycastScripts.all, at: destination)
+
+        XCTAssertEqual(
+            try String(contentsOf: destination.appendingPathComponent("fan-auto.sh"), encoding: .utf8),
+            RaycastScripts.all.first { $0.filename == "fan-auto.sh" }?.contents
+        )
+        XCTAssertEqual(
+            try String(contentsOf: destination.appendingPathComponent("personal.sh"), encoding: .utf8),
+            "keep"
+        )
+    }
+
+    func testInstallReportsDirectoryCreationFailure() throws {
+        let root = try temporaryDirectory()
+        let blocked = root.appendingPathComponent("blocked")
+        try Data().write(to: blocked)
+
+        XCTAssertThrowsError(
+            try RaycastScriptInstaller().install(
+                RaycastScripts.all,
+                at: blocked.appendingPathComponent("raycast")
+            )
+        )
+    }
+
+    private func temporaryDirectory() throws -> URL {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: directory)
+        }
+        return directory
+    }
+}
