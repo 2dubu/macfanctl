@@ -25,7 +25,7 @@ enum RaycastScripts {
             # @raycast.author Geonwoo Lee
             # @raycast.authorURL https://github.com/2dubu
 
-            "$(command -v macfanctl)" list
+            "$(command -v macfanctl)" list\n
             """
         ),
         RaycastScript(
@@ -47,7 +47,7 @@ enum RaycastScripts {
             # @raycast.author Geonwoo Lee
             # @raycast.authorURL https://github.com/2dubu
 
-            exec sudo "$(command -v macfanctl)" set "$1"
+            exec sudo "$(command -v macfanctl)" set "$1"\n
             """
         ),
         RaycastScript(
@@ -68,7 +68,7 @@ enum RaycastScripts {
             # @raycast.author Geonwoo Lee
             # @raycast.authorURL https://github.com/2dubu
 
-            exec sudo "$(command -v macfanctl)" max
+            exec sudo "$(command -v macfanctl)" max\n
             """
         ),
         RaycastScript(
@@ -89,7 +89,7 @@ enum RaycastScripts {
             # @raycast.author Geonwoo Lee
             # @raycast.authorURL https://github.com/2dubu
 
-            exec sudo "$(command -v macfanctl)" auto
+            exec sudo "$(command -v macfanctl)" auto\n
             """
         ),
     ]

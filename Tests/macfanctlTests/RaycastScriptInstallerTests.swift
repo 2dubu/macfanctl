@@ -44,6 +44,13 @@ final class RaycastScriptInstallerTests: XCTestCase {
         )
     }
 
+    func testManagedScriptContentsEndWithExactlyOneNewline() {
+        for script in RaycastScripts.all {
+            let trailingNewlineCount = script.contents.reversed().prefix(while: { $0 == "\n" }).count
+            XCTAssertEqual(trailingNewlineCount, 1, "\(script.filename) should end with exactly one newline")
+        }
+    }
+
     func testInstallReportsDirectoryCreationFailure() throws {
         let root = try temporaryDirectory()
         let blocked = root.appendingPathComponent("blocked")
