@@ -24,7 +24,7 @@ Two steps: install the binary, then run `setup` to register a NOPASSWD sudoers r
 brew install 2dubu/tap/macfanctl
 sudo macfanctl setup
 
-# Optional: install Raycast Script Commands
+# Optional: install Raycast Script Commands in ~/raycast-script
 macfanctl raycast setup
 ```
 
@@ -69,7 +69,7 @@ Without `macfanctl setup`, every write command will prompt for password. With it
 
 ## Raycast scripts
 
-Optional [Raycast](https://www.raycast.com/) Script Commands for one-keystroke fan control. Run `macfanctl raycast setup` (or `make raycast_setup` from a source checkout) to install them in `~/Library/Application Support/Raycast/script-commands/macfanctl`:
+Optional [Raycast](https://www.raycast.com/) Script Commands for one-keystroke fan control. Run `macfanctl raycast setup` (or `make raycast_setup` from a source checkout) to install them in `~/raycast-script`:
 
 - `fan-auto.sh` — release all fans to system control (`macfanctl auto`)
 - `fan-max.sh` — push all fans to hardware maximum (`macfanctl max`)
@@ -80,7 +80,9 @@ Optional [Raycast](https://www.raycast.com/) Script Commands for one-keystroke f
 
 1. Run `macfanctl raycast setup` after installing `macfanctl` and completing `macfanctl setup`.
 2. In Raycast, open **Settings → Extensions → Script Commands**.
-3. Click **+ → Add Script Directory** and select `~/Library/Application Support/Raycast/script-commands/macfanctl`.
+3. Click **+ → Add Script Directory** and select `~/raycast-script`.
+
+To use another directory, pass its full path with `--directory`. For example, `macfanctl raycast setup --directory "$HOME/Documents/raycast-script"` installs the scripts in `~/Documents/raycast-script`.
 
 The scripts call `sudo macfanctl …` and rely on the NOPASSWD sudoers rule installed by `macfanctl setup` — without that step, Raycast has no way to provide a password and the write commands (`fan-max`, `fan-rpm`) will fail silently. `fan-auto` does not require root on every system but is invoked the same way for consistency.
 

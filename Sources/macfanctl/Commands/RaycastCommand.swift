@@ -16,10 +16,16 @@ struct RaycastSetupCommand: ParsableCommand {
         abstract: "Install macfanctl Raycast script commands."
     )
 
+    @Option(
+        name: .long,
+        help: "Directory where the Raycast scripts are installed."
+    )
+    var directory: String?
+
     func run() throws {
         try Self.validateEffectiveUserID(geteuid())
 
-        let destination = RaycastScriptInstaller.destinationDirectory()
+        let destination = RaycastScriptInstaller.destinationDirectory(directoryPath: directory)
         let installed = try RaycastScriptInstaller().install(RaycastScripts.all, at: destination)
         print("Installed \(installed.count) Raycast commands:")
         print("  \(destination.path)")

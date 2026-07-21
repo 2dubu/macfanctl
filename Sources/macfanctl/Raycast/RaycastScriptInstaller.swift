@@ -8,11 +8,16 @@ struct RaycastScriptInstaller {
     }
 
     static func destinationDirectory(
+        directoryPath: String? = nil,
         homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
     ) -> URL {
-        homeDirectory
-            .appendingPathComponent("Library/Application Support", isDirectory: true)
-            .appendingPathComponent("Raycast/script-commands/macfanctl", isDirectory: true)
+        if let directoryPath {
+            return URL(
+                fileURLWithPath: NSString(string: directoryPath).expandingTildeInPath,
+                isDirectory: true
+            )
+        }
+        return homeDirectory.appendingPathComponent("raycast-script", isDirectory: true)
     }
 
     func install(_ scripts: [RaycastScript], at destination: URL) throws -> [URL] {

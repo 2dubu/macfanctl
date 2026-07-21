@@ -25,11 +25,18 @@ final class RaycastScriptInstallerTests: XCTestCase {
         }
     }
 
-    func testDestinationDirectoryUsesExpectedApplicationSupportPath() {
+    func testDestinationDirectoryDefaultsToRaycastScriptInHomeDirectory() {
         let home = URL(fileURLWithPath: "/Users/tester", isDirectory: true)
         XCTAssertEqual(
             RaycastScriptInstaller.destinationDirectory(homeDirectory: home).path,
-            "/Users/tester/Library/Application Support/Raycast/script-commands/macfanctl"
+            "/Users/tester/raycast-script"
+        )
+    }
+
+    func testDestinationDirectoryUsesCustomPathExactly() {
+        XCTAssertEqual(
+            RaycastScriptInstaller.destinationDirectory(directoryPath: "/Users/tester/Documents").path,
+            "/Users/tester/Documents"
         )
     }
 
