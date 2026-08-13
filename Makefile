@@ -3,7 +3,7 @@ BIN         = macfanctl
 BUILD_DIR   = .build/apple/Products/Release
 BUILD       = $(BUILD_DIR)/$(BIN)
 
-.PHONY: build test sign install uninstall setup clean run-list
+.PHONY: build test sign install uninstall setup raycast_setup clean run-list
 
 build:
 	swift build -c release --arch arm64 --arch x86_64
@@ -21,6 +21,9 @@ install: sign
 
 setup:
 	sudo $(PREFIX)/bin/$(BIN) setup
+
+raycast_setup:
+	$(PREFIX)/bin/$(BIN) raycast setup
 
 uninstall:
 	-sudo $(PREFIX)/bin/$(BIN) setup --uninstall 2>/dev/null

@@ -24,5 +24,9 @@ let package = Package(
             name: "SMCKitTests",
             dependencies: ["SMCKit"]
         ),
+        .testTarget(
+            name: "macfanctlTests",
+            dependencies: ["macfanctl"]
+        ),
     ]
 )
