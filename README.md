@@ -54,6 +54,7 @@ macfanctl list --json                # machine-readable
 macfanctl list --debug               # dump raw SMC fan key bytes (for diagnostics on new hardware)
 macfanctl watch                      # live-refresh the fan table in place (like top); Ctrl+C to quit
 macfanctl watch --interval 0.5       # refresh every 0.5s (default 1s)
+macfanctl watch --json > fan-state.jsonl # timestamped, read-only diagnostic recording
 
 sudo macfanctl set 3500              # set all fans to 3500 RPM
 sudo macfanctl set 3500 --fan 0      # set fan 0 only
@@ -64,6 +65,10 @@ sudo macfanctl auto --fan 0          # release fan 0 only
 ```
 
 `set` rejects RPM values above the fan's hardware max with a clear error rather than silently clamping. Use `max` if you want to push to the ceiling.
+
+Quit **Macs Fan Control** before using `set` or `max`. These commands check for its running application and refuse before accessing the SMC, because the app can overwrite manual settings when it applies a profile. The background `smcwrite` helper alone does not block commands. `auto` remains available even when the app is running or the conflict check fails.
+
+This check is a snapshot: starting Macs Fan Control after setting an RPM can still reset it. `set` and `max` apply once and exit; they do not reserve control or keep reapplying a target. See [diagnosing settings that reset](docs/fan-control-resets.md) for the reproduced conflict and how to record a transition.
 
 Without `macfanctl setup`, every write command will prompt for password. With it, the binary is allowed to run as root without prompting (scoped to `/usr/local/bin/macfanctl` only).
 
@@ -110,12 +115,14 @@ Write operations require root. The current MVP relies on a NOPASSWD sudoers rule
 ## Limitations
 
 - **Sleep/wake behavior not tested here.** The agoodkind research notes that firmware resets the manual-mode unlock on sleep transitions; this project hasn't verified the behavior on M5 Max.
-- **No Ftst diagnostic path.** Per the research, some Apple Silicon generations require an `Ftst=1` unlock dance before mode writes succeed. `macfanctl` currently only does the direct mode-write path (verified on M5).
+- **Conditional Ftst fallback.** If a direct manual-mode write returns SMC result `0x82`, `macfanctl` enables `Ftst` and retries the mode write for up to 10 seconds. Other write errors are reported directly. This does not prevent another controller from subsequently restoring Auto.
 - **`F%dMn` is read-only on M5.** SMC returns `0x86` (key-not-writable) when attempting to write the minimum RPM. Informational — `macfanctl` doesn't touch `Mn`; switching to manual mode is what makes the target stick.
 
 ## Reporting issues
 
 If `macfanctl` doesn't work as expected on your Mac, please open a [Hardware report](https://github.com/2dubu/macfanctl/issues/new/choose). The output of `macfanctl list --debug` is the most useful single piece of data to include — it shows which SMC keys your hardware exposes.
+
+For intermittent resets, run `macfanctl watch --json > fan-state.jsonl` before the event and stop it with Ctrl+C afterward. Include the affected timestamps and nearby power, sleep/wake, or fan-app actions. The recording reads state only and cannot identify which process wrote an SMC key by itself.
 
 ## License
 
