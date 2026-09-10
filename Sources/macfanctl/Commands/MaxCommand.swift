@@ -12,6 +12,8 @@ struct MaxCommand: ParsableCommand {
     var fan: Int?
 
     func run() throws {
+        try FanControlConflict.check()
+
         let smc: SMC
         do {
             smc = try SMC()

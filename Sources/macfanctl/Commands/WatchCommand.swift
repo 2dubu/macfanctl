@@ -2,7 +2,7 @@ import ArgumentParser
 import Foundation
 import SMCKit
 
-/// Set from the `SIGINT` handler (Ctrl+C). File-scope so the handler — which must
+/// Set from the `SIGINT` or `SIGTERM` handler. File-scope so the handler — which must
 /// be a non-capturing C function — can flag the render loop to stop. `sig_atomic_t`
 /// writes are async-signal-safe, so `nonisolated(unsafe)` is sound here.
 private nonisolated(unsafe) var watchShouldStop: sig_atomic_t = 0
@@ -16,9 +16,12 @@ struct WatchCommand: ParsableCommand {
     @Option(name: .long, help: "Refresh interval in seconds.")
     var interval: Double = 1.0
 
+    @Flag(name: .long, help: "Write one JSON diagnostic sample per line, without terminal formatting.")
+    var json = false
+
     func validate() throws {
-        guard interval > 0 else {
-            throw ValidationError("--interval must be greater than 0.")
+        guard interval.isFinite, interval > 0 else {
+            throw ValidationError("--interval must be finite and greater than 0.")
         }
     }
 
@@ -31,25 +34,36 @@ struct WatchCommand: ParsableCommand {
             throw ExitCode(2)
         }
 
-        signal(SIGINT) { _ in watchShouldStop = 1 }
+        watchShouldStop = 0
+        let previousInterruptHandler = signal(SIGINT) { _ in watchShouldStop = 1 }
+        let previousTerminateHandler = signal(SIGTERM) { _ in watchShouldStop = 1 }
+        defer {
+            signal(SIGINT, previousInterruptHandler)
+            signal(SIGTERM, previousTerminateHandler)
+        }
 
         // Hide the cursor while the live view is up; always restore it on exit
         // (Ctrl+C, error, or normal return) so the terminal is never left broken.
-        write("\u{1B}[?25l")
-        defer { write("\u{1B}[?25h\n") }
+        if !json { write("\u{1B}[?25l") }
+        defer { if !json { write("\u{1B}[?25h\n") } }
 
         let header = "macfanctl watch — every \(String(format: "%g", interval))s  (Ctrl+C to quit)"
 
         while watchShouldStop == 0 {
-            let body: String
-            do {
-                body = renderFanTable(try smc.readFans())
-            } catch {
-                body = "Failed to read fans: \(error)"
-            }
+            if json {
+                let snapshot = FanStateSnapshot.capture(read: smc.read)
+                FileHandle.standardOutput.write(try snapshot.jsonLine())
+            } else {
+                let body: String
+                do {
+                    body = renderFanTable(try smc.readFans())
+                } catch {
+                    body = "Failed to read fans: \(error)"
+                }
 
-            // Clear screen + move cursor home, then redraw the frame in place.
-            write("\u{1B}[2J\u{1B}[H\(header)\n\n\(body)\n")
+                // Clear screen + move cursor home, then redraw the frame in place.
+                write("\u{1B}[2J\u{1B}[H\(header)\n\n\(body)\n")
+            }
 
             // Sleep in small slices so Ctrl+C is acted on promptly, not after a full interval.
             var elapsed = 0.0
