@@ -6,12 +6,12 @@ A macOS CLI for reading and controlling fan speeds via SMC.
 
 ## Status
 
-v0.1 — read + write both implemented and verified on MacBook Pro M5 Max / macOS 26.4. Other Apple Silicon generations are handled in code via the mode-key auto-probe but have not been hardware-tested by this project.
+Read and write operations have been verified on MacBook Pro M5 Max / macOS 26.4. The manual-unlock lifecycle has also been tested on M4 Pro / macOS 26.5.1; see the [reset investigation](docs/fan-control-resets.md). Other hardware remains unverified by this project.
 
 ## Requirements
 
-- Build targets macOS 13+. Tested on macOS 26.4.
-- MacBook Pro M5 Max verified. Other Macs may work but are unverified.
+- Build targets macOS 13+. Tested on macOS 26.4 and 26.5.1.
+- MacBook Pro M5 Max and M4 Pro verified. Other Macs may work but are unverified.
 
 ## Install
 
@@ -70,6 +70,8 @@ Quit **Macs Fan Control** before using `set` or `max`. These commands check for 
 
 This check is a snapshot: starting Macs Fan Control after setting an RPM can still reset it. `set` and `max` apply once and exit; they do not reserve control or keep reapplying a target. See [diagnosing settings that reset](docs/fan-control-resets.md) for the reproduced conflict and how to record a transition.
 
+On hardware that exposes the `Ftst` unlock, manual commands enable it before entering manual mode, even when a direct mode write would succeed. `auto --fan N` preserves that shared unlock while another fan is still manual. A full `auto` waits for the mode changes to become visible before releasing it, and reports any incomplete cleanup.
+
 Without `macfanctl setup`, every write command will prompt for password. With it, the binary is allowed to run as root without prompting (scoped to `/usr/local/bin/macfanctl` only).
 
 ## Raycast scripts
@@ -100,6 +102,7 @@ Each script uses `command -v macfanctl` to locate the binary, so it works whethe
 1. Writes to the fan target key (`F%dTg`) succeed at the SMC interface (no error returned) but the written value does not stick — the system reasserts its own target almost immediately.
 2. The fix, per [agoodkind/macos-smc-fan](https://github.com/agoodkind/macos-smc-fan) research, is to first write `1` to the fan mode key, which switches that fan from system-managed mode to manual mode. After that, `F%dTg` writes stick.
 3. The mode key casing varies by hardware: M5 uses `F%dmd` (lowercase, verified here). The research describes `F%dMd` (uppercase) for earlier generations. `macfanctl` probes both casings on the first write and caches the result.
+4. A successful manual-mode write can leave `Ftst=0`. On the tested M4 Pro this allowed a later return to mode 3 and target 0. When `Ftst` exists, `macfanctl` now enables it before either mode or target writes. Missing-key responses preserve the direct path; other read or write errors are reported.
 
 References:
 - [agoodkind/macos-smc-fan](https://github.com/agoodkind/macos-smc-fan) — Apple Silicon unlock mechanism research
@@ -115,7 +118,7 @@ Write operations require root. The current MVP relies on a NOPASSWD sudoers rule
 ## Limitations
 
 - **Sleep/wake behavior not tested here.** The agoodkind research notes that firmware resets the manual-mode unlock on sleep transitions; this project hasn't verified the behavior on M5 Max.
-- **Conditional Ftst fallback.** If a direct manual-mode write returns SMC result `0x82`, `macfanctl` enables `Ftst` and retries the mode write for up to 10 seconds. Other write errors are reported directly. This does not prevent another controller from subsequently restoring Auto.
+- **Manual unlock is hardware-dependent.** `Ftst` is probed and enabled when supported. If firmware still returns `0x82` during the transition, the manual-mode write is retried for at most 10 seconds. Another controller or a firmware reset can still revoke control; sleep/wake persistence is not guaranteed.
 - **`F%dMn` is read-only on M5.** SMC returns `0x86` (key-not-writable) when attempting to write the minimum RPM. Informational — `macfanctl` doesn't touch `Mn`; switching to manual mode is what makes the target stick.
 
 ## Reporting issues

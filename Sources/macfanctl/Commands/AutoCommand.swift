@@ -41,7 +41,12 @@ struct AutoCommand: ParsableCommand {
             }
         }
 
-        // All fans restored; drop the global Ftst unlock if we set it (M4).
-        try? smc.resetFanTestUnlock()
+        // Ftst is shared by all fans. Preserve it if another fan is still manual.
+        do {
+            try smc.resetFanTestUnlock()
+        } catch {
+            FileHandle.standardError.write(Data("Could not finish releasing the fan-test unlock: \(error)\n".utf8))
+            throw ExitCode(2)
+        }
     }
 }
